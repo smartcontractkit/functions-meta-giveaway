@@ -89,9 +89,30 @@ cd chainlink-functions-facebook-giveaway
 ```
 npm install
 ```
-3) Set the required environment variables
+
+This repo uses the NPM package `@chainlink/env-enc` for keeping environment variables such as wallet private keys, RPC URLs, and other secrets encrypted at rest. This reduces the risk of credential exposure by ensuring credentials are not visible in plaintext.
+
+By default, all encrypted environment variables will be stored in a file named `.env.enc` in the root directory of this repo.
+
+> **Warning**
+>
+> **DO NOT COMMIT YOUR `.env.enc` FILE**
+
+3) Aquire a Github personal access token which allows reading and writing Gists
+
+- Visit https://github.com/settings/tokens?type=beta and click "Generate new token"
+- Name the token and enable read & write access for Gists from the "Account permissions" drop-down menu. Do not enable any additional permissions.
+- Click "Generate token" and copy the resulting personal access token for step 4
+
+4) Set an encryption password for your environment variables to a secure password
 ```
-cp .env.example .env
+npx env-enc set-pw
+```
+The password must be set at the beginning of each new session. If this password is lost, there will be no way to recover the encrypted environment variables.
+
+5) Set the required environment variables
+```
+npx env-enc set
 ```
 - `PRIVATE_KEY`: Your Ethereum account private key.
 - `MUMBAI_RPC_URL`: RPC URL of the node provider(e.g., Infura, Alchemy… etc.) that will allow you to connect to the Polygon Mumbai testnet.
@@ -100,12 +121,14 @@ cp .env.example .env
 - `FACEBOOK_PAGE_ID`: The ID of your Facebook/Instagram Business Page
 - `TESTER_ACCOUNTS_IDS`: The array of Tester accounts IDs
 
-4) Compile smart contracts
+Run the command `npx env-enc set` to set and save environment variables. These variables will be loaded into your environment when the `config()` method is called at the top of `hardhat.config.js`. Use `npx env-enc view` to view all currently saved environment variables. When pressing _ENTER_, the terminal will be cleared to prevent these values from remaining visible. Running `npx env-enc remove VAR_NAME_HERE` deletes the specified environment variable. The command `npx env-enc remove-all` deletes the entire saved environment variable file.
+
+6) Compile smart contracts
 ```
 npx hardhat compile
 ```
 
-5) Simulate on-chain execution
+7) Simulate on-chain execution
 ```
 npx hardhat functions-simulate
 ```
