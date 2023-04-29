@@ -1,7 +1,7 @@
 const fs = require("fs")
 
-// Loads environment variables from .env file (if it exists)
-require("dotenv").config()
+// Loads environment variables from .env.enc file (if it exists)
+require("@chainlink/env-enc").config()
 
 const Location = {
   Inline: 0,
@@ -29,14 +29,14 @@ const numberOfWinners = '3';
 const requestConfig = {
   // location of source code (only Inline is currently supported)
   codeLocation: Location.Inline,
-  // location of secrets (Inline or Remote)
-  secretsLocation: Location.Inline,
   // code language (only JavaScript is currently supported)
   codeLanguage: CodeLanguage.JavaScript,
   // string containing the source code to be executed
   source: fs.readFileSync("./Functions-request-source.js").toString(),
-  // secrets can be accessed within the source code with `secrets.varName` (ie: secrets.apiKey)
+  // Secrets can be accessed within the source code with `secrets.varName` (ie: secrets.apiKey). The secrets object can only contain string values.
   secrets: { FACEBOOK_PAGE_ID: process.env["FACEBOOK_PAGE_ID"], FACEBOOK_GRAPH_API_KEY: process.env["FACEBOOK_GRAPH_API_KEY"], TESTER_ACCOUNTS_IDS: process.env["TESTER_ACCOUNTS_IDS"] },
+  // Per-node secrets objects assigned to each DON member. When using per-node secrets, nodes can only use secrets which they have been assigned.
+  perNodeSecrets: [],
   // ETH wallet key used to sign secrets so they cannot be accessed by a 3rd party
   walletPrivateKey: process.env["PRIVATE_KEY"],
   // args (string only array) can be accessed within the source code with `args[index]` (ie: args[0]).
@@ -45,10 +45,6 @@ const requestConfig = {
   expectedReturnType: ReturnType.bytes,
   // Redundant URLs which point to encrypted off-chain secrets
   secretsURLs: [],
-  // Default offchain secrets object used by the `functions-build-offchain-secrets` command
-  globalOffchainSecrets: {},
-  // Per-node offchain secrets objects used by the `functions-build-offchain-secrets` command
-  perNodeOffchainSecrets: [],
 }
 
 module.exports = requestConfig

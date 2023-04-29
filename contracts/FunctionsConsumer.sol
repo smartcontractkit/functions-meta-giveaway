@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./dev/functions/FunctionsClient.sol";
+import {Functions, FunctionsClient} from "./dev/functions/FunctionsClient.sol";
 // import "@chainlink/contracts/src/v0.8/dev/functions/FunctionsClient.sol"; // Once published
-import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
-import "./GiveawayNFT.sol";
+import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
+import {GiveawayNFT} from "./GiveawayNFT.sol";
 
 /**
- * @title Functions Copns contract
+ * @title Functions Consumer contract
  * @notice This contract is a demonstration of using Functions.
  * @notice NOT FOR PRODUCTION USE
  */
@@ -33,28 +33,24 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
 
   /**
    * @notice Send a simple request
+   *
    * @param source JavaScript source code
    * @param secrets Encrypted secrets payload
    * @param args List of arguments accessible from within the source code
    * @param subscriptionId Billing ID
+   * @param gasLimit Maximum amount of gas used to call the client contract's `handleOracleFulfillment` function
+   * @return Functions request ID
    */
   function executeRequest(
     string calldata source,
     bytes calldata secrets,
-    Functions.Location secretsLocation,
     string[] calldata args,
     uint64 subscriptionId,
     uint32 gasLimit
   ) public onlyOwner returns (bytes32) {
     Functions.Request memory req;
     req.initializeRequest(Functions.Location.Inline, Functions.CodeLanguage.JavaScript, source);
-    if (secrets.length > 0) {
-      if (secretsLocation == Functions.Location.Inline) {
-        req.addInlineSecrets(secrets);
-      } else {
-        req.addRemoteSecrets(secrets);
-      }
-    }
+    if (secrets.length > 0) req.addRemoteSecrets(secrets);
     if (args.length > 0) req.addArgs(args);
 
     bytes32 assignedReqID = sendRequest(req, subscriptionId, gasLimit);
@@ -90,6 +86,11 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
     nft.mint(winner3);
   }
 
+  /**
+   * @notice Allows the Functions oracle address to be updated
+   *
+   * @param oracle New oracle address
+   */
   function updateOracleAddress(address oracle) public onlyOwner {
     setOracle(oracle);
   }
